@@ -5,7 +5,10 @@ import {
   normalizeNumeric,
   gradeAnswer,
   isCheckpointPassed,
+  createQuizState,
+  recordCheckpointResult,
 } from "../js/engine.js";
+import { CHECKPOINTS } from "../js/data.js";
 
 test("seedForAge maps ages to entry checkpoints per spec", () => {
   // spec: seed = clamp(age - 6, 0, 6)
@@ -58,4 +61,81 @@ test("isCheckpointPassed allows at most one miss", () => {
   assert.equal(isCheckpointPassed([true, true, false, false]), false);
   assert.equal(isCheckpointPassed([true, true, true, true, false]), true);
   assert.equal(isCheckpointPassed([true, true, true, false, false]), false);
+});
+
+// Simulates a full quiz: the child passes exactly the checkpoints whose ids
+// are in passIds and fails all others. Returns the final state.
+function runWalk(age, passIds) {
+  let state = createQuizState(age);
+  let guard = 0;
+  while (state.outcome === null) {
+    assert.ok(++guard <= 8, "walk did not terminate");
+    const cp = CHECKPOINTS[state.currentIndex];
+    const n = cp.problems.length;
+    const passed = passIds.has(cp.id);
+    // pass: all correct; fail: only the first correct (>= 2 misses since n >= 4)
+    const perProblem = Array.from({ length: n }, (_, i) => (passed ? true : i === 0));
+    state = recordCheckpointResult(state, perProblem);
+  }
+  return state;
+}
+
+test("pass at seed walks up; first failure is the recommendation", () => {
+  let s = createQuizState(9); // seed 3
+  assert.equal(s.currentIndex, 3);
+  const pass = CHECKPOINTS[3].problems.map(() => true);
+  s = recordCheckpointResult(s, pass);
+  assert.equal(s.outcome, null);
+  assert.equal(s.direction, "up");
+  assert.equal(s.currentIndex, 4);
+  const fail = CHECKPOINTS[4].problems.map((_, i) => i === 0);
+  s = recordCheckpointResult(s, fail);
+  assert.equal(s.outcome, "L4");
+  assert.equal(s.recommendedIndex, 4);
+});
+
+test("fail at seed walks down; first pass ends with the rung above as recommendation", () => {
+  let s = createQuizState(9); // seed 3
+  s = recordCheckpointResult(s, CHECKPOINTS[3].problems.map(() => false));
+  assert.equal(s.direction, "down");
+  assert.equal(s.currentIndex, 2);
+  s = recordCheckpointResult(s, CHECKPOINTS[2].problems.map(() => false));
+  assert.equal(s.currentIndex, 1);
+  s = recordCheckpointResult(s, CHECKPOINTS[1].problems.map(() => true));
+  assert.equal(s.outcome, "L2");
+  assert.equal(s.recommendedIndex, 2);
+});
+
+test("failing checkpoint K recommends Level K", () => {
+  const s = runWalk(7, new Set()); // seed 1, fails everything
+  assert.equal(s.outcome, "K");
+  assert.equal(s.recommendedIndex, 0);
+});
+
+test("passing checkpoint 7 gives the beyond outcome", () => {
+  const all = new Set(CHECKPOINTS.map((c) => c.id));
+  const s = runWalk(14, all); // seed 6: pass 6, pass 7
+  assert.equal(s.outcome, "BEYOND");
+  assert.equal(s.recommendedIndex, null);
+});
+
+test("placement result is independent of the seeding age", () => {
+  // For each rung k, a child who can do everything below k but not k itself
+  // must be recommended rung k's level, no matter where they entered.
+  for (let k = 0; k < CHECKPOINTS.length; k++) {
+    const passIds = new Set(CHECKPOINTS.slice(0, k).map((c) => c.id));
+    for (const age of [5, 9, 14]) {
+      const s = runWalk(age, passIds);
+      assert.equal(
+        s.outcome,
+        CHECKPOINTS[k].outcome,
+        `rung ${k} from age ${age}`
+      );
+      assert.equal(s.recommendedIndex, k, `rung ${k} from age ${age}`);
+    }
+  }
+  for (const age of [5, 9, 14]) {
+    const s = runWalk(age, new Set(CHECKPOINTS.map((c) => c.id)));
+    assert.equal(s.outcome, "BEYOND", `beyond from age ${age}`);
+  }
 });

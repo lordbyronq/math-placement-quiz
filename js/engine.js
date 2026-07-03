@@ -30,3 +30,48 @@ export function isCheckpointPassed(perProblem) {
   const misses = perProblem.filter((r) => !r).length;
   return misses <= MAX_MISSES;
 }
+
+export function createQuizState(age) {
+  return {
+    currentIndex: seedForAge(age),
+    direction: null, // null | "up" | "down"
+    tested: {}, // checkpointIndex -> { passed, perProblem }
+    outcome: null, // outcome key once finished
+    recommendedIndex: null, // checkpoint the recommendation is based on (null for BEYOND)
+  };
+}
+
+export function recordCheckpointResult(state, perProblem) {
+  const passed = isCheckpointPassed(perProblem);
+  const idx = state.currentIndex;
+  const base = {
+    ...state,
+    tested: { ...state.tested, [idx]: { passed, perProblem } },
+  };
+
+  if (passed) {
+    if (idx === TOP_INDEX) {
+      return { ...base, outcome: "BEYOND", recommendedIndex: null };
+    }
+    if (state.direction === "down") {
+      // Walking down and finally passed: the rung above is the lowest failed.
+      return finish(base, idx + 1);
+    }
+    return { ...base, direction: "up", currentIndex: idx + 1 };
+  }
+
+  if (idx === 0) return finish(base, 0);
+  if (state.direction === "up") {
+    // Walking up and hit the first failure: this rung is the recommendation.
+    return finish(base, idx);
+  }
+  return { ...base, direction: "down", currentIndex: idx - 1 };
+}
+
+function finish(state, recommendedIndex) {
+  return {
+    ...state,
+    outcome: CHECKPOINTS[recommendedIndex].outcome,
+    recommendedIndex,
+  };
+}
