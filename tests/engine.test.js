@@ -7,6 +7,7 @@ import {
   isCheckpointPassed,
   createQuizState,
   recordCheckpointResult,
+  skillBreakdown,
 } from "../js/engine.js";
 import { CHECKPOINTS } from "../js/data.js";
 
@@ -138,4 +139,54 @@ test("placement result is independent of the seeding age", () => {
     const s = runWalk(age, new Set(CHECKPOINTS.map((c) => c.id)));
     assert.equal(s.outcome, "BEYOND", `beyond from age ${age}`);
   }
+});
+
+test("skillBreakdown splits the failed checkpoint's skills by full correctness", () => {
+  let s = createQuizState(9); // seed 3
+  s = recordCheckpointResult(s, CHECKPOINTS[3].problems.map(() => true)); // pass 3
+  // Checkpoint 4 problems: [4-ops, 4-mult, 4-mult, 4-frac, 4-frac].
+  // Miss both multiplication problems -> fail the checkpoint (2 misses),
+  // but 4-ops and 4-frac were fully correct.
+  s = recordCheckpointResult(s, [true, false, false, true, true]);
+  assert.equal(s.outcome, "L4");
+
+  const { demonstrated, toLearn } = skillBreakdown(s);
+  const cp3Texts = CHECKPOINTS[3].skills.map((sk) => sk.text);
+  for (const t of cp3Texts) assert.ok(demonstrated.includes(t), t);
+  assert.ok(
+    demonstrated.includes(
+      "Solves word problems and computational problems involving borrowing and carrying using the numbers 0–999,999"
+    )
+  );
+  assert.ok(
+    demonstrated.includes(
+      "Writes equal, not equal, less than, and greater than equations for fractions"
+    )
+  );
+  assert.deepEqual(toLearn, [
+    "Multiplies 1- and 2-digit numbers times 2- and 3-digit numbers",
+  ]);
+});
+
+test("skillBreakdown for the beyond outcome lists everything demonstrated, nothing to learn", () => {
+  const all = new Set(CHECKPOINTS.map((c) => c.id));
+  const s = runWalk(14, all);
+  const { demonstrated, toLearn } = skillBreakdown(s);
+  assert.deepEqual(toLearn, []);
+  // Every tested (passed) checkpoint's skills appear.
+  for (const idx of Object.keys(s.tested)) {
+    for (const sk of CHECKPOINTS[Number(idx)].skills) {
+      assert.ok(demonstrated.includes(sk.text), sk.text);
+    }
+  }
+});
+
+test("skillBreakdown when everything failed shows no demonstrated skills", () => {
+  const s = runWalk(7, new Set());
+  const { demonstrated, toLearn } = skillBreakdown(s);
+  assert.deepEqual(demonstrated, []);
+  assert.deepEqual(
+    toLearn,
+    CHECKPOINTS[0].skills.map((sk) => sk.text)
+  );
 });

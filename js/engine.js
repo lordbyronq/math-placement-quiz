@@ -75,3 +75,31 @@ function finish(state, recommendedIndex) {
     recommendedIndex,
   };
 }
+
+export function skillBreakdown(state) {
+  const demonstrated = [];
+  const toLearn = [];
+
+  for (let idx = 0; idx < CHECKPOINTS.length; idx++) {
+    const result = state.tested[idx];
+    if (!result) continue;
+    const cp = CHECKPOINTS[idx];
+
+    if (result.passed) {
+      for (const skill of cp.skills) demonstrated.push(skill.text);
+      continue;
+    }
+    // Only the recommended (lowest failed) rung's skills are broken out;
+    // a failed rung above it was superseded by the lower failure.
+    if (idx !== state.recommendedIndex) continue;
+
+    for (const skill of cp.skills) {
+      const positions = cp.problems
+        .map((p, i) => (p.skill === skill.id ? i : -1))
+        .filter((i) => i !== -1);
+      const allCorrect = positions.every((i) => result.perProblem[i]);
+      (allCorrect ? demonstrated : toLearn).push(skill.text);
+    }
+  }
+  return { demonstrated, toLearn };
+}
