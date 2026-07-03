@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placement Quiz — Full Site Breakdown</title>
+<style>
+  :root { --cream:#f5efe6; --paper:#fdfaf4; --maroon:#8b1a1a; --maroon-dark:#6e1414;
+          --ink:#2e2a26; --soft:#5c554d; --rule:#e0d6c6; --accent:#f0e6d6; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--cream); color:var(--ink); font:17px/1.65 Georgia, serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:3rem 1.5rem 6rem; }
+  header { text-align:center; margin-bottom:2.5rem; }
+  header h1 { color:var(--maroon); font-size:2.3rem; line-height:1.2; margin:0 0 .4rem; }
+  .meta { color:var(--soft); font-style:italic; }
+  .meta a { color:var(--maroon); }
+  nav.toc { background:var(--paper); border:1px solid var(--rule); border-radius:8px; padding:1.2rem 1.6rem; margin-bottom:2.5rem; }
+  nav.toc h2 { margin:0 0 .6rem; font-size:.95rem; color:var(--maroon); text-transform:uppercase; letter-spacing:.08em; }
+  nav.toc ol { margin:0; padding-left:1.3rem; columns:2; column-gap:2rem; }
+  nav.toc a { color:var(--ink); text-decoration:none; }
+  nav.toc a:hover { color:var(--maroon); }
+  details.sec { background:var(--paper); border:1px solid var(--rule); border-radius:8px; margin-bottom:1.1rem; overflow:hidden; }
+  details.sec > summary { cursor:pointer; padding:1rem 1.5rem; font-size:1.2rem; font-weight:bold; color:var(--maroon); list-style:none; position:relative; }
+  details.sec > summary::-webkit-details-marker { display:none; }
+  details.sec > summary::after { content:"+"; position:absolute; right:1.4rem; color:var(--soft); font-weight:normal; }
+  details.sec[open] > summary::after { content:"–"; }
+  details.sec > .body { padding:0 1.5rem 1.4rem; border-top:1px solid var(--rule); }
+  h3 { color:var(--maroon-dark); margin-top:1.5rem; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.9rem; }
+  th,td { border:1px solid var(--rule); padding:.55rem .7rem; text-align:left; vertical-align:top; }
+  th { background:var(--accent); color:var(--maroon-dark); }
+  tr:nth-child(even) td { background:#faf6ee; }
+  code, pre { font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:.85em; }
+  code { background:var(--accent); padding:.1em .35em; border-radius:4px; }
+  pre { background:#2e2a26; color:#f0e6d6; padding:1rem 1.2rem; border-radius:8px; overflow-x:auto; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .note { background:var(--accent); border-left:4px solid var(--maroon); padding:.7rem 1.2rem; border-radius:0 8px 8px 0; margin:1.2rem 0; }
+  .flow { background:var(--paper); border:1px solid var(--rule); border-radius:8px; padding:1rem; margin:1rem 0; }
+  ul li, ol li { margin-bottom:.35rem; }
+  @media (max-width:640px) { nav.toc ol { columns:1; } header h1 { font-size:1.7rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Making Math Meaningful<br>Placement Quiz — Full Site Breakdown</h1>
+  <div class="meta">
+    Live: <a href="https://lordbyronq.github.io/math-placement-quiz/">lordbyronq.github.io/math-placement-quiz</a> ·
+    Code: <a href="https://github.com/lordbyronq/math-placement-quiz">github.com/lordbyronq/math-placement-quiz</a>
+  </div>
+</header>
+
+<div class="note"><strong>In one paragraph:</strong> a parent enters their child's age, hands the device over, and the child solves real, auto-graded math problems. The quiz walks a ladder of eight skill checkpoints taken straight from the program's Levels Chart — up on a passed set, down on a failed one — until it finds the boundary of what the child can do. The first checkpoint they <em>can't</em> pass is the level they should start with: the exact rule of the paper chart, automated. No server, no framework, no build step, no data collection.</div>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#journey">The user journey</a></li>
+    <li><a href="#ladder">The placement ladder</a></li>
+    <li><a href="#engine">The adaptive engine</a></li>
+    <li><a href="#data">The data model</a></li>
+    <li><a href="#app">The app layer &amp; persistence</a></li>
+    <li><a href="#design">Design system</a></li>
+    <li><a href="#files">File map</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#hosting">Hosting &amp; updating</a></li>
+    <li><a href="#decisions">Design decisions</a></li>
+  </ol>
+</nav>
+
+<details class="sec" open id="journey">
+<summary>1 · The user journey — five screens</summary>
+<div class="body">
+<div class="flow">
+<svg viewBox="0 0 840 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Screen flow: Welcome to Hand-off to Quiz, looping through Interstitial, ending at Results">
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8b1a1a"/></marker></defs>
+  <g font-family="Georgia, serif" font-size="14" text-anchor="middle">
+    <rect x="10" y="40" width="130" height="50" rx="10" fill="#fdfaf4" stroke="#8b1a1a" stroke-width="1.5"/>
+    <text x="75" y="61" fill="#8b1a1a" font-weight="bold">Welcome</text>
+    <text x="75" y="79" fill="#5c554d" font-size="11">parent picks age</text>
+    <rect x="180" y="40" width="130" height="50" rx="10" fill="#fdfaf4" stroke="#8b1a1a" stroke-width="1.5"/>
+    <text x="245" y="61" fill="#8b1a1a" font-weight="bold">Hand-off</text>
+    <text x="245" y="79" fill="#5c554d" font-size="11">device to child</text>
+    <rect x="350" y="40" width="150" height="50" rx="10" fill="#f0e6d6" stroke="#8b1a1a" stroke-width="2"/>
+    <text x="425" y="61" fill="#8b1a1a" font-weight="bold">Quiz</text>
+    <text x="425" y="79" fill="#5c554d" font-size="11">4–6 problems per set</text>
+    <rect x="545" y="10" width="150" height="44" rx="10" fill="#fdfaf4" stroke="#8b1a1a" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="620" y="29" fill="#8b1a1a" font-weight="bold" font-size="13">Interstitial</text>
+    <text x="620" y="45" fill="#5c554d" font-size="11">"Nice work!" → next set</text>
+    <rect x="545" y="72" width="150" height="50" rx="10" fill="#8b1a1a"/>
+    <text x="620" y="93" fill="#fff" font-weight="bold">Results</text>
+    <text x="620" y="111" fill="#f0e6d6" font-size="11">level + skills + link</text>
+    <line x1="140" y1="65" x2="178" y2="65" stroke="#8b1a1a" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="310" y1="65" x2="348" y2="65" stroke="#8b1a1a" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="500" y1="52" x2="543" y2="35" stroke="#8b1a1a" stroke-width="1.5" marker-end="url(#a)"/>
+    <path d="M545,25 C500,10 460,18 432,38" fill="none" stroke="#8b1a1a" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a)"/>
+    <line x1="500" y1="80" x2="543" y2="93" stroke="#8b1a1a" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="527" y="26" fill="#5c554d" font-size="11" text-anchor="end">more to test</text>
+    <text x="527" y="105" fill="#5c554d" font-size="11" text-anchor="end">boundary found</text>
+  </g>
+</svg>
+</div>
+<table>
+<tr><th>Screen</th><th>Audience</th><th>What happens</th></tr>
+<tr><td><strong>Welcome</strong></td><td>Parent</td><td>Explains the quiz (5–10 min), "levels are not grades," pencil &amp; scratch paper note, and one question: the child's age. Age only picks the <em>starting rung</em> — it never affects the result.</td></tr>
+<tr><td><strong>Hand-off</strong></td><td>Parent</td><td>"Now hand the device to your child." For the youngest entry point the copy changes: the parent works <em>with</em> the child (pre-readers can't quiz alone).</td></tr>
+<tr><td><strong>Quiz</strong></td><td>Child</td><td>One problem per card: big type, progress dots, "I don't know yet" button. Wrong answers are never announced. No timer, no score, no red X's.</td></tr>
+<tr><td><strong>Interstitial</strong></td><td>Child</td><td>Between sets: "Nice work! Let's try a few more." The child never learns whether a set was passed or failed.</td></tr>
+<tr><td><strong>Results</strong></td><td>Parent</td><td>The recommendation in the chart's own words, the ✓/○ skill breakdown, the auto-advance philosophy quote, a product-page button, and Start Over.</td></tr>
+</table>
+</div>
+</details>
+
+<details class="sec" open id="ladder">
+<summary>2 · The placement ladder — the chart as data</summary>
+<div class="body">
+<p>The Levels Chart is encoded as <strong>eight checkpoints</strong>, each with the chart row's skill lines (verbatim wording) and 4–6 problems — every skill covered by at least one problem, 42 problems total.</p>
+<table>
+<tr><th>Checkpoint</th><th>Skills tested</th><th>Problems</th><th>First failed →</th></tr>
+<tr><td>K</td><td>Reads / writes the numbers 0–20</td><td>4 <em>(parent-assisted)</em></td><td><strong>Level K</strong></td></tr>
+<tr><td>1</td><td>Word problems 0–20; +/− facts to 20</td><td>5</td><td><strong>Level 1</strong></td></tr>
+<tr><td>2</td><td>Borrowing &amp; carrying, 0–99</td><td>5</td><td><strong>Level 2</strong></td></tr>
+<tr><td>3</td><td>0–999; ×/÷ facts; writing fractions</td><td>5</td><td><strong>Level 3</strong></td></tr>
+<tr><td>4</td><td>0–999,999; multi-digit ×; fraction comparisons</td><td>5</td><td><strong>Level 4</strong></td></tr>
+<tr><td>5</td><td>Trillions; big ×; 5-digit ÷; fraction operations</td><td>6</td><td><strong>Level 5</strong></td></tr>
+<tr><td>6</td><td>Decimals; long division; ratio / percent</td><td>6</td><td><strong>Level 6</strong></td></tr>
+<tr><td>7</td><td>Pre-algebra; equations; systems; quadratics</td><td>6</td><td><strong>Algebra I</strong></td></tr>
+<tr><td>—</td><td>Passes all of checkpoint 7</td><td>—</td><td><strong>Geometry/Alg II (pending) → Calculus</strong></td></tr>
+</table>
+</div>
+</details>
+
+<details class="sec" id="engine">
+<summary>3 · The adaptive engine — how it decides</summary>
+<div class="body">
+<h3>Seeding</h3>
+<p><code>seed = clamp(age − 6, 0, 6)</code> — a 9-year-old starts at checkpoint 3. Deliberately <strong>one rung below</strong> age expectation so the first set is a likely pass and the child starts with a win. Seed caps at 6, so algebra (checkpoint 7) is always <em>earned</em> by passing 6.</p>
+<h3>Pass rule</h3>
+<p>A set is <strong>passed with at most one miss</strong> (≈80%+). "I don't know yet" is a silent miss.</p>
+<h3>The walk</h3>
+<ul>
+<li><strong>Pass</strong> → step up and test again. Pass checkpoint 7 → the beyond-algebra outcome.</li>
+<li><strong>Fail</strong> → step down. Fail checkpoint K → Level K.</li>
+<li>Walking <em>up</em> and hit a failure → that rung is the recommendation. Walking <em>down</em> and finally pass → the rung <em>above</em> is the recommendation.</li>
+</ul>
+<p>The walk is monotonic, so it always terminates — typically 2–3 checkpoints, 8–15 problems. The unit tests prove the key property: <strong>the recommendation is identical whether the child entered at age 5, 9, or 14</strong>. Age changes quiz length, never the result.</p>
+<h3>Grading</h3>
+<table>
+<tr><th>Type</th><th>Rule</th></tr>
+<tr><td><code>numeric</code></td><td>Commas/whitespace stripped, compared as numbers — <code>7,344</code> = <code>7344</code>. Decimals and negatives supported. Empty input can't be submitted.</td></tr>
+<tr><td><code>choice</code></td><td>Exact match. Used for notation-heavy items: fractions, symbols, factored quadratics.</td></tr>
+<tr><td><code>parent-check</code></td><td>Parent taps "Yes, they could" / "Not yet"; only yes is correct.</td></tr>
+</table>
+<h3>Skill breakdown</h3>
+<p>Passed checkpoints' skills → <em>"Your child demonstrated."</em> Within the failed checkpoint, a skill whose problems were <em>all</em> correct still counts as demonstrated (partial credit at skill granularity); the rest → <em>"Level N will teach."</em></p>
+</div>
+</details>
+
+<details class="sec" id="data">
+<summary>4 · The data model — the one file to edit</summary>
+<div class="body">
+<p>Everything a curriculum author might change lives in <code>js/data.js</code>:</p>
+<pre><code>{
+  id: "4",
+  outcome: "L4",              // outcome if this is the first failed rung
+  parentAssisted: false,
+  skills: [
+    { id: "4-mult", text: "Multiplies 1- and 2-digit numbers times 2- and 3-digit numbers" },
+  ],
+  problems: [
+    { id: "4-2", skill: "4-mult", type: "numeric", prompt: "34 × 216 =", answer: "7344" },
+    { id: "4-4", skill: "4-frac", type: "choice",
+      prompt: "Choose the correct symbol:  2/3 ▢ 3/4",
+      choices: ["&lt;", "&gt;", "=", "≠"], answer: "&lt;" },
+  ],
+}</code></pre>
+<p>A validation suite guards edits: 8 checkpoints in order, 4–6 problems each, every skill covered, every answer key sane, every outcome linked to a cornerstonecurriculum.com product page. Break a rule and <code>npm test</code> says exactly what's wrong.</p>
+</div>
+</details>
+
+<details class="sec" id="app">
+<summary>5 · The app layer &amp; persistence</summary>
+<div class="body">
+<p><code>js/app.js</code> is the only file that touches the page. It switches screens (moving keyboard focus to each new heading/problem), builds the numeric input or choice buttons per problem, renders progress dots, disables Next until input is a valid number, hides "I don't know yet" on parent-check items, and routes each finished set through the engine to either the interstitial or the results screen.</p>
+<p><strong>Persistence:</strong> the full quiz state is saved to <code>sessionStorage</code> after every answer, so an accidental refresh resumes at the same problem with the same dots. Per-tab, expires on close, nothing ever sent anywhere. "Start over" clears it.</p>
+</div>
+</details>
+
+<details class="sec" id="design">
+<summary>6 · Design system</summary>
+<div class="body">
+<ul>
+<li><strong>Palette:</strong> cream page (<code>#f5efe6</code>), paper cards (<code>#fdfaf4</code>), deep maroon headings/actions (<code>#8b1a1a</code>). No green/red correctness colors exist — the quiz never signals right/wrong.</li>
+<li><strong>Type:</strong> EB Garamond headings + Georgia body — bookish, matching the main site. Problem text scales fluidly (<code>clamp(1.5rem → 2.4rem)</code>) for young eyes.</li>
+<li><strong>Layout:</strong> one centered 680px column; verified overflow-free at 320–1440px.</li>
+<li><strong>Motion:</strong> one gentle fade-and-rise between screens (compositor-friendly only), disabled under <code>prefers-reduced-motion</code>.</li>
+<li><strong>Accessibility:</strong> semantic sections, labeled inputs, visible focus, focus moved to each new problem, <code>aria-live</code> prompt, fully keyboard-operable.</li>
+</ul>
+</div>
+</details>
+
+<details class="sec" id="files">
+<summary>7 · File map</summary>
+<div class="body">
+<pre><code>/
+├── index.html            98 lines — all five screens
+├── css/styles.css       188 lines — tokens + everything visual
+├── js/data.js           395 lines — the chart as data  ← EDIT THIS ONE
+├── js/engine.js         105 lines — placement logic (pure functions)
+├── js/app.js            260 lines — DOM, flow, persistence
+├── tests/                21 tests — data validation + engine
+├── package.json          test runner config
+└── docs/                 spec, plan, this document</code></pre>
+<p>Dependencies point one way only: <code>app.js → engine.js → data.js</code>. The engine never touches the DOM; the data file holds no logic.</p>
+</div>
+</details>
+
+<details class="sec" id="testing">
+<summary>8 · Testing</summary>
+<div class="body">
+<p><code>npm test</code> (Node 18+, built-in runner, zero dependencies) — <strong>21/21 passing</strong>: 6 data-validation tests over all 42 problems and 9 outcomes, and 15 engine tests covering the age→seed table, grading formats, pass-rule boundaries, up/down/floor/ceiling walks, the seed-independence proof across all outcomes, and skill-breakdown edges.</p>
+<p>Manual verification on the built site: responsive 320–1440, keyboard-only completion, reduced motion, comma-formatted answers, refresh-resume, and three full scripted journeys (advanced → Calculus note; selective misses → Level 4 with the right skill split; beginner → Level K).</p>
+</div>
+</details>
+
+<details class="sec" id="hosting">
+<summary>9 · Hosting &amp; updating</summary>
+<div class="body">
+<ul>
+<li><strong>Host:</strong> GitHub Pages serving the <code>main</code> branch of <code>lordbyronq/math-placement-quiz</code>. Free, HTTPS, nothing to maintain.</li>
+<li><strong>Update:</strong> push to <code>main</code> → live in about a minute.</li>
+<li><strong>Edit problems:</strong> change <code>js/data.js</code>, run <code>npm test</code>, push.</li>
+<li><strong>Custom domain later:</strong> e.g. <code>quiz.cornerstonecurriculum.com</code> — one DNS CNAME + one repo setting.</li>
+<li>All paths are relative, so the same files also work embedded on another host or in an iframe on the main site.</li>
+</ul>
+</div>
+</details>
+
+<details class="sec" id="decisions">
+<summary>10 · Deliberate design decisions</summary>
+<div class="body">
+<table>
+<tr><th>Decision</th><th>Why</th></tr>
+<tr><td>Child works real problems</td><td>Placement reflects demonstrated ability, not parental recollection.</td></tr>
+<tr><td>Seed one rung below age expectation</td><td>First set is a likely pass — the child starts with a win.</td></tr>
+<tr><td>No right/wrong feedback mid-quiz</td><td>A placement test shouldn't feel like failing; all misses are silent.</td></tr>
+<tr><td>"I don't know yet" button</td><td>A lucky guess can move a child up a whole level; this removes the incentive.</td></tr>
+<tr><td>Pass = at most one miss</td><td>One typo or misread shouldn't sink a set a child genuinely owns.</td></tr>
+<tr><td>Vanilla JS, no framework, no build</td><td>Editable in a text editor for the next decade; nothing to break.</td></tr>
+<tr><td>All content in one tested data file</td><td>The curriculum author can tweak problems safely without touching code.</td></tr>
+<tr><td>sessionStorage only, no analytics</td><td>Zero privacy concerns for families; nothing leaves the browser.</td></tr>
+</table>
+<p><strong>v1 limitations:</strong> one fixed problem per slot (variant pools are the natural v2), no email capture/printing/analytics (excluded by design), and the beyond-algebra outcome links to Calculus Made Clear since Geometry/Algebra II is availability-pending.</p>
+</div>
+</details>
+
+</div>
+</body>
+</html>
