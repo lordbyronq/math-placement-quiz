@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find Your Child's Level — Making Math Meaningful</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<main>
+
+  <section id="screen-welcome" class="screen" aria-labelledby="welcome-heading">
+    <h1 id="welcome-heading">Find the Perfect Starting Level</h1>
+    <p class="lede">Your child works a few real math problems, and we recommend exactly
+    which <em>Making Math Meaningful</em> level to begin with — in about 5–10 minutes.</p>
+    <div class="card">
+      <h2>Before you begin</h2>
+      <ul class="prep-list">
+        <li><strong>Levels are not grades.</strong> Children move to the next level whenever they're ready.</li>
+        <li>Have <strong>pencil and scratch paper</strong> ready.</li>
+        <li>Younger children can have problems read aloud to them.</li>
+      </ul>
+      <form id="welcome-form">
+        <label class="field-label" for="age-select">How old is your child?</label>
+        <select id="age-select" required>
+          <option value="" selected disabled>Choose an age…</option>
+          <option value="4">4 or younger</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14 or older</option>
+        </select>
+        <p class="hint">Not sure where they'll land? Just pick their age — the quiz adapts.</p>
+        <button type="submit" class="btn">Start</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="screen-handoff" class="screen" aria-labelledby="handoff-heading" hidden>
+    <h1 id="handoff-heading">Ready?</h1>
+    <div class="card">
+      <p id="handoff-copy"></p>
+      <button id="handoff-continue" class="btn" type="button">We're ready</button>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen" aria-label="Math problems" hidden>
+    <div class="dots" id="progress-dots" aria-hidden="true"></div>
+    <div class="card problem-card">
+      <p id="parent-note" class="parent-note" hidden></p>
+      <p id="problem-prompt" class="problem-prompt" aria-live="polite"></p>
+      <div id="answer-area"></div>
+      <button id="idk-button" class="btn-ghost" type="button">I don't know yet</button>
+    </div>
+  </section>
+
+  <section id="screen-interstitial" class="screen center" aria-labelledby="interstitial-heading" hidden>
+    <div class="card">
+      <h2 id="interstitial-heading">Nice work!</h2>
+      <p>Let's try a few more.</p>
+      <button id="interstitial-continue" class="btn" type="button">Keep going</button>
+    </div>
+  </section>
+
+  <section id="screen-results" class="screen" aria-labelledby="result-action" hidden>
+    <p class="result-kicker">Our recommendation</p>
+    <h1 id="result-action"></h1>
+    <p class="lede" id="result-blurb"></p>
+    <div class="card">
+      <h2>What your child demonstrated</h2>
+      <ul id="demonstrated-list" class="skill-list demonstrated"></ul>
+      <h2 id="to-learn-heading"></h2>
+      <ul id="to-learn-list" class="skill-list to-learn"></ul>
+    </div>
+    <div class="card philosophy">
+      <p>“Auto-advance to the next level when ready! We encourage teaching multiple
+      children/ages together, and all age recommendations should be adapted to your
+      individual family's needs.”</p>
+    </div>
+    <p class="actions">
+      <a id="result-link" class="btn" href="#">See this level</a>
+      <button id="start-over" class="btn-ghost" type="button">Start over</button>
+    </p>
+  </section>
+
+</main>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
