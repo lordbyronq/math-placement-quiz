@@ -230,5 +230,31 @@ document.getElementById("start-over").addEventListener("click", () => {
   showScreen("welcome");
 });
 
+function restore() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved || !saved.quiz) return false;
+    quiz = saved.quiz;
+    run = saved.run;
+    if (quiz.outcome) {
+      renderResults();
+      showScreen("results");
+      return true;
+    }
+    if (run) {
+      renderProblem();
+      showScreen("quiz");
+      return true;
+    }
+    renderHandoff();
+    showScreen("handoff");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // --- boot
-showScreen("welcome");
+if (!restore()) showScreen("welcome");
