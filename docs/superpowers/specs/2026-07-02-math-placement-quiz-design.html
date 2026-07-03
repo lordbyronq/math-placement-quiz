@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Making Math Meaningful — Placement Quiz Design</title>
+<style>
+  :root {
+    --cream: #f5efe6;
+    --paper: #fdfaf4;
+    --maroon: #8b1a1a;
+    --maroon-dark: #6e1414;
+    --ink: #2e2a26;
+    --ink-soft: #5c554d;
+    --rule: #e0d6c6;
+    --accent-bg: #f0e6d6;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font: 17px/1.65 Georgia, "Times New Roman", serif;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  header { text-align: center; margin-bottom: 3rem; }
+  header h1 { font-size: 2.4rem; color: var(--maroon); margin: 0 0 .4rem; line-height: 1.2; }
+  header .meta { color: var(--ink-soft); font-style: italic; }
+  header .status { display: inline-block; margin-top: .8rem; background: var(--maroon); color: #fff; padding: .25rem .9rem; border-radius: 99px; font-size: .8rem; font-style: normal; letter-spacing: .04em; }
+  nav.toc { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 1.2rem 1.6rem; margin-bottom: 2.5rem; }
+  nav.toc h2 { margin: 0 0 .6rem; font-size: 1rem; color: var(--maroon); text-transform: uppercase; letter-spacing: .08em; }
+  nav.toc ol { margin: 0; padding-left: 1.3rem; columns: 2; column-gap: 2rem; }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--maroon); }
+  details.sec { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; margin-bottom: 1.2rem; overflow: hidden; }
+  details.sec > summary {
+    cursor: pointer; padding: 1rem 1.5rem; font-size: 1.25rem; font-weight: bold;
+    color: var(--maroon); list-style: none; position: relative;
+  }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec > summary::after { content: "+"; position: absolute; right: 1.4rem; color: var(--ink-soft); font-weight: normal; }
+  details.sec[open] > summary::after { content: "–"; }
+  details.sec > .body { padding: 0 1.5rem 1.4rem; border-top: 1px solid var(--rule); }
+  h3 { color: var(--maroon-dark); margin-top: 1.6rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { border: 1px solid var(--rule); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+  th { background: var(--accent-bg); color: var(--maroon-dark); }
+  tr:nth-child(even) td { background: #faf6ee; }
+  code, pre { font-family: var(--mono); font-size: .85em; }
+  code { background: var(--accent-bg); padding: .1em .35em; border-radius: 4px; }
+  pre { background: #2e2a26; color: #f0e6d6; padding: 1rem 1.2rem; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+  ul li, ol li { margin-bottom: .35rem; }
+  .check { color: #3f6b3f; font-weight: bold; }
+  .circle { color: var(--ink-soft); font-weight: bold; }
+  blockquote { border-left: 4px solid var(--maroon); margin: 1rem 0; padding: .4rem 1.2rem; background: var(--accent-bg); font-style: italic; }
+  @media (max-width: 640px) { nav.toc ol { columns: 1; } header h1 { font-size: 1.8rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Making Math Meaningful<br>Placement Quiz — Design</h1>
+  <div class="meta">Cornerstone Curriculum · July 2, 2026</div>
+  <div class="status">Approved Design</div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#goal">Goal</a></li>
+    <li><a href="#chart">Source of truth: the Levels Chart</a></li>
+    <li><a href="#flow">User flow</a></li>
+    <li><a href="#engine">Placement engine</a></li>
+    <li><a href="#bank">Problem bank</a></li>
+    <li><a href="#results">Results page</a></li>
+    <li><a href="#look">Look &amp; feel</a></li>
+    <li><a href="#arch">Architecture</a></li>
+    <li><a href="#edge">Error handling &amp; edge cases</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#scope">Out of scope (v1)</a></li>
+  </ol>
+</nav>
+
+<details class="sec" open id="goal">
+<summary>Goal</summary>
+<div class="body">
+<p>A single web page that automatically places a child into the correct <em>Making Math Meaningful</em> level. It replaces manual use of the paper "Levels Chart" with an adaptive quiz: the child works real, auto-graded problems, and the page recommends the exact level the chart would — the first level whose skills the child cannot yet do.</p>
+<p>Hosting is undecided; the deliverable is a self-contained static page that works anywhere (no backend, no build step). Style must fit the existing cornerstonecurriculum.com look — cream, deep maroon, classic serif.</p>
+</div>
+</details>
+
+<details class="sec" open id="chart">
+<summary>Source of truth: the Levels Chart</summary>
+<div class="body">
+<p>The engine encodes the chart row-for-row. Skill lines are quoted in the parent's language on the results page.</p>
+<table>
+<tr><th>Checkpoint</th><th>Skill lines (from chart)</th><th>First failed → recommendation</th></tr>
+<tr><td><strong>K</strong></td><td>Reads and writes the numbers 0–20</td><td><strong>Level K</strong></td></tr>
+<tr><td><strong>1</strong></td><td>Solves word problems using the numbers 0–20 · Knows the basic addition and subtraction facts 0–20</td><td><strong>Level 1</strong></td></tr>
+<tr><td><strong>2</strong></td><td>Word problems and computational problems involving borrowing and carrying, numbers 0–99</td><td><strong>Level 2</strong></td></tr>
+<tr><td><strong>3</strong></td><td>Borrowing and carrying 0–999 · Basic multiplication and division facts · Writes symbolic representations for common fractions</td><td><strong>Level 3</strong></td></tr>
+<tr><td><strong>4</strong></td><td>Borrowing and carrying 0–999,999 · Multiplies 1–2 digit × 2–3 digit numbers · Writes =, ≠, &lt;, &gt; equations for fractions</td><td><strong>Level 4</strong></td></tr>
+<tr><td><strong>5</strong></td><td>Numbers in the trillions · Multiplies 2–3 digit × 3–4 digit · Divides 5-digit by 1-digit · Adds, subtracts, multiplies, divides common fractions</td><td><strong>Level 5</strong></td></tr>
+<tr><td><strong>6</strong></td><td>Decimals word/computational problems · Divides 6-digit by 2–3 digit · All four operations with decimals · Ratio, proportions, percentages</td><td><strong>Level 6</strong></td></tr>
+<tr><td><strong>7</strong></td><td>Pre-algebraic concepts · y + 4 = 9 · 3x + 2 = y · Systems of 2 equations, 2 unknowns · Solves quadratics · Factors quadratics</td><td><strong>Principles from Patterns: Algebra I</strong></td></tr>
+<tr><td>—</td><td>Passes all of checkpoint 7</td><td><strong>Geometry/Algebra II (availability pending), then Calculus Made Clear</strong></td></tr>
+</table>
+<p>Each recommendation links to its product page on cornerstonecurriculum.com.</p>
+</div>
+</details>
+
+<details class="sec" id="flow">
+<summary>User flow — four screens</summary>
+<div class="body">
+<ol>
+<li><strong>Welcome (parent).</strong> What the quiz does ("find the perfect starting level, about 5–10 minutes"), the program's philosophy (levels are not grades; children auto-advance when ready), a note to have pencil and scratch paper ready, and one required input: <strong>child's age</strong> ("4 or younger" through "14 or older"). Age only seeds the starting rung — it never decides the result. <em>"Not sure? Pick your best guess — the quiz adapts."</em></li>
+<li><strong>Hand-off.</strong> "Now hand the device to your child." For young children, the parent sits alongside and reads problems aloud. Checkpoint K items are explicitly parent-assisted.</li>
+<li><strong>Quiz.</strong> One problem per card: large type, progress dot trail, an <em>"I don't know yet"</em> button (silent miss — no forced guessing), encouraging transitions between sets. No red X's, no visible scoring, no timer. Wrong answers are never announced.</li>
+<li><strong>Results (parent).</strong> Recommendation, skill breakdown, philosophy note, product link, start-over.</li>
+</ol>
+</div>
+</details>
+
+<details class="sec" id="engine">
+<summary>Placement engine</summary>
+<div class="body">
+<h3>Checkpoints</h3>
+<p>Eight (K–7), each a set of 4–6 auto-graded problems; every skill line of that chart row is represented by at least one problem.</p>
+<h3>Seeding</h3>
+<p>Expected checkpoint by age ≈ (age − 5); seed one rung <em>below</em> it so the first set is a likely pass and builds confidence. Formula: <code>seed = clamp(age − 6, K, 6)</code>. Mapping: ≤5 → K, 6 → K, 7 → 1, 8 → 2, 9 → 3, 10 → 4, 11 → 5, 12+ → 6. Max seed is 6, so checkpoint 7 is always reached by passing 6.</p>
+<h3>Pass rule</h3>
+<p>A checkpoint is passed when the child misses <strong>at most one</strong> problem in the set (≈80%+). "I don't know yet" counts as a miss.</p>
+<h3>Adaptive walk</h3>
+<ul>
+<li>First result <strong>pass</strong> → step up one rung at a time until the first fail (that rung is the recommendation), or checkpoint 7 passes (→ Geometry/Algebra II outcome).</li>
+<li>First result <strong>fail</strong> → step down until the first pass (the lowest failed rung above it is the recommendation), or checkpoint K fails (→ Level K).</li>
+</ul>
+<p>The walk is monotonic, so it always terminates; it mirrors the chart's own ladder logic. Typical run: 2–3 checkpoints, 8–15 problems.</p>
+<h3>State</h3>
+<p>Quiz state persists in <code>sessionStorage</code> so an accidental refresh doesn't lose progress. "Start over" clears it.</p>
+</div>
+</details>
+
+<details class="sec" id="bank">
+<summary>Problem bank</summary>
+<div class="body">
+<p>One fixed problem per slot (variant pools are a future enhancement). Written in the curriculum's conceptual style — word problems and real contexts wherever the chart says "word problems."</p>
+<table>
+<tr><th>Checkpoint</th><th>Representative problems</th></tr>
+<tr><td>K <em>(parent-assisted)</em></td><td>"Point to the number fourteen" (child taps); "Ask your child to write the number 17 — did they write it correctly?" (parent taps Yes/No)</td></tr>
+<tr><td>1</td><td>"Maria has 8 apples. She gives 3 to her brother. How many are left?" · 9 + 6 · 14 − 8</td></tr>
+<tr><td>2</td><td>52 − 27 · 38 + 45 · one borrowing/carrying word problem</td></tr>
+<tr><td>3</td><td>7 × 8 · 42 ÷ 6 · 304 − 178 · "Which fraction shows three out of four equal parts?" (MC)</td></tr>
+<tr><td>4</td><td>34 × 216 · 6-digit place value · "Choose the correct symbol: 2/3 ▢ 3/4" (=, ≠, &lt;, &gt;)</td></tr>
+<tr><td>5</td><td>23,514 ÷ 7 · 3/4 + 2/3 · 245 × 1,338 · 2/3 × 3/5</td></tr>
+<tr><td>6</td><td>4.6 × 2.3 · 132,486 ÷ 27 · "What is 35% of 80?" · ratio word problem</td></tr>
+<tr><td>7</td><td>y + 4 = 9 · 3x + 2 = 11 · system {2x + y = 9, x + y = 10} · factor x² + 5x + 6 (MC) · one quadratic</td></tr>
+</table>
+<p><strong>Input types:</strong> numeric entry for computation (digits only, no empty submits); multiple choice for notation-heavy items (fractions, symbols, factoring). Each problem records the skill line it tests.</p>
+</div>
+</details>
+
+<details class="sec" id="results">
+<summary>Results page</summary>
+<div class="body">
+<ul>
+<li><strong>Recommendation</strong> front and center, in the chart's own words: <em>"Begin using Level 4."</em></li>
+<li><strong>Skill breakdown</strong>, positively framed:
+  <ul>
+    <li><span class="check">✓ "Your child demonstrated"</span> — skill lines from passed checkpoints, plus skill lines in the failed checkpoint whose problems were <em>all</em> answered correctly.</li>
+    <li><span class="circle">○ "Level N will teach"</span> — the remaining skill lines of the recommended level.</li>
+  </ul>
+</li>
+<li><strong>Philosophy note</strong> from the chart: auto-advance when ready; age recommendations adapt to your family.</li>
+<li><strong>Product link</strong> — one clear button to the recommended level's page on cornerstonecurriculum.com.</li>
+<li><strong>Start over</strong> for a second child.</li>
+</ul>
+</div>
+</details>
+
+<details class="sec" id="look">
+<summary>Look &amp; feel</summary>
+<div class="body">
+<ul>
+<li><strong>Palette:</strong> cream background, deep maroon headings/actions, warm gray text — as CSS custom properties. Color used semantically; no green/red correctness cues mid-quiz.</li>
+<li><strong>Typography:</strong> two families max — classic display serif for headings (EB Garamond or similar), highly readable face for problems/UI, fluid <code>clamp()</code> sizes, <code>font-display: swap</code>.</li>
+<li><strong>Layout:</strong> single centered column; large problem cards; subtle progress dots; parent screens slightly bookish, child cards cleaner and bigger.</li>
+<li><strong>Motion:</strong> gentle fades/transforms only (compositor-friendly), disabled under <code>prefers-reduced-motion</code>.</li>
+<li><strong>Responsive &amp; accessible:</strong> 320&nbsp;px and up, touch-friendly, semantic HTML, labeled inputs, focus management, keyboard operable, WCAG AA contrast.</li>
+</ul>
+</div>
+</details>
+
+<details class="sec" id="arch">
+<summary>Architecture</summary>
+<div class="body">
+<p>Static site — no framework, no build step, no backend:</p>
+<pre><code>/                        (repo root = deployable root)
+├── index.html           # all four screens, semantic markup
+├── css/styles.css       # tokens + styles
+├── js/data.js           # chart data: checkpoints, skills, problems, links
+├── js/engine.js         # pure placement logic — no DOM
+├── js/app.js            # screen flow, rendering, input, sessionStorage
+└── tests/engine.test.js # node:test suite</code></pre>
+<p>Separating <code>data.js</code> lets the curriculum author tweak problems and wording without touching logic. <code>engine.js</code> is pure functions — directly unit-testable.</p>
+</div>
+</details>
+
+<details class="sec" id="edge">
+<summary>Error handling &amp; edge cases</summary>
+<div class="body">
+<ul>
+<li>Invalid/empty numeric input: submit disabled until valid; no error flashes at the child.</li>
+<li>Accidental refresh: state restored from <code>sessionStorage</code>.</li>
+<li>"I don't know yet": silent miss; prevents forced guessing from inflating placement.</li>
+<li>Fail at K / pass at 7: explicit terminal outcomes.</li>
+<li>Commas in large numbers stripped before grading.</li>
+<li>No quiz-time network dependencies beyond fonts (system-font fallbacks provided).</li>
+</ul>
+</div>
+</details>
+
+<details class="sec" id="testing">
+<summary>Testing</summary>
+<div class="body">
+<ul>
+<li><strong>Engine (node:test):</strong> seeding for every age; pass-rule boundaries; walk scenarios producing each of the 9 outcomes; pass-all/fail-all from every seed; state round-trip.</li>
+<li><strong>Data validation:</strong> every skill line has ≥1 problem; every problem has a valid answer key and skill reference; every level has a product link.</li>
+<li><strong>Manual/visual:</strong> 320/375/tablet/desktop; reduced motion; keyboard-only run-through.</li>
+</ul>
+</div>
+</details>
+
+<details class="sec" id="scope">
+<summary>Out of scope (v1)</summary>
+<div class="body">
+<p>Email capture / mailing list, printing/PDF export, analytics, problem variant pools, multiple-child profiles, server-side anything.</p>
+</div>
+</details>
+
+</div>
+</body>
+</html>
