@@ -170,10 +170,65 @@ function answer(response) {
   completeCheckpoint();
 }
 
-// Placeholder for this task; Task 8 replaces it with the real implementation.
 function completeCheckpoint() {
-  console.log("checkpoint complete", quiz.currentIndex, run.perProblem);
+  quiz = recordCheckpointResult(quiz, run.perProblem);
+  run = null;
+  save();
+  if (quiz.outcome) {
+    renderResults();
+    showScreen("results");
+    return;
+  }
+  showScreen("interstitial");
 }
+
+document
+  .getElementById("interstitial-continue")
+  .addEventListener("click", beginCheckpoint);
+
+// --- results
+function renderResults() {
+  const outcome = OUTCOMES[quiz.outcome];
+  document.getElementById("result-action").textContent = outcome.action;
+  document.getElementById("result-blurb").textContent =
+    quiz.outcome === "BEYOND"
+      ? "Your child demonstrated every skill on the placement ladder — they're ready for high-school math."
+      : "This is the level where your child is ready to grow. Here's what we saw:";
+
+  const { demonstrated, toLearn } = skillBreakdown(quiz);
+  fillList(
+    "demonstrated-list",
+    demonstrated.length
+      ? demonstrated
+      : ["Your child is just beginning — and every mathematician starts here."]
+  );
+  document.getElementById("to-learn-heading").textContent = toLearn.length
+    ? `${outcome.name} will teach`
+    : "";
+  fillList("to-learn-list", toLearn);
+
+  const link = document.getElementById("result-link");
+  link.href = outcome.url;
+  link.textContent = `See ${outcome.name}`;
+}
+
+function fillList(id, items) {
+  const ul = document.getElementById(id);
+  ul.innerHTML = "";
+  for (const text of items) {
+    const li = document.createElement("li");
+    li.textContent = text;
+    ul.appendChild(li);
+  }
+}
+
+document.getElementById("start-over").addEventListener("click", () => {
+  clearSaved();
+  quiz = null;
+  run = null;
+  document.getElementById("welcome-form").reset();
+  showScreen("welcome");
+});
 
 // --- boot
 showScreen("welcome");
