@@ -74,7 +74,7 @@ New assertions (existing tests unchanged):
 
 1. **Format tag presence:** every checkpoint 1–7 problem has `format` ∈ {`word`, `computation`}; every checkpoint K problem has no `format`.
 2. **Per-checkpoint ratio:** checkpoints 1–6 have exactly 3 `word` and 2 `computation`; checkpoint 7 has exactly 4 `word` and 2 `computation`.
-3. **Missing-value integrity:** every checkpoint 1–7 has ≥1 computation problem whose prompt contains an underscore run; each such problem is `type: "numeric"` with a finite numeric `answer`.
+3. **Missing-value integrity:** every checkpoint **1–6** has ≥1 computation problem whose prompt contains an underscore run; each such problem is `type: "numeric"` with a finite numeric `answer`. (Checkpoint 7's computation problems use real algebraic notation — `y + 4 = 9`, `3x + 2 = 11` — which is the variable-letter graduation of the same open-sentence idea, so it is exempt from the underscore-blank check.)
 4. Existing rules still hold: 8 checkpoints K–7; 4–6 problems each; every skill covered; choice answers among choices; every outcome linked.
 
 ## Out of scope

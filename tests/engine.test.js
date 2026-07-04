@@ -144,10 +144,11 @@ test("placement result is independent of the seeding age", () => {
 test("skillBreakdown splits the failed checkpoint's skills by full correctness", () => {
   let s = createQuizState(9); // seed 3
   s = recordCheckpointResult(s, CHECKPOINTS[3].problems.map(() => true)); // pass 3
-  // Checkpoint 4 problems: [4-ops, 4-mult, 4-mult, 4-frac, 4-frac].
-  // Miss both multiplication problems -> fail the checkpoint (2 misses),
-  // but 4-ops and 4-frac were fully correct.
-  s = recordCheckpointResult(s, [true, false, false, true, true]);
+  // Checkpoint 4 problems: [4-ops(word), 4-mult(word), 4-frac(word),
+  // 4-ops(comp), 4-mult(comp)]. Miss both multiplication problems (indices
+  // 1 and 4) -> fail the checkpoint (2 misses), but 4-ops and 4-frac were
+  // fully correct.
+  s = recordCheckpointResult(s, [true, false, true, true, false]);
   assert.equal(s.outcome, "L4");
 
   const { demonstrated, toLearn } = skillBreakdown(s);

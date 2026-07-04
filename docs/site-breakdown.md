@@ -30,7 +30,9 @@ All five screens live in `index.html` as `<section>` elements; JavaScript shows 
 
 ## 3. The placement ladder
 
-The Levels Chart is encoded as **eight checkpoints** in `js/data.js`. Each checkpoint has the chart row's skill lines (verbatim wording) and 4–6 problems, with every skill covered by at least one problem — 42 problems total.
+The Levels Chart is encoded as **eight checkpoints** in `js/data.js`. Each checkpoint has the chart row's skill lines (verbatim wording) and 4–6 problems, with every skill covered by at least one problem — 40 problems total.
+
+**Problem mix.** Each scored checkpoint (1–7) is weighted **60% word problems / 40% computation** — checkpoints 1–6 run 3 word / 2 computation, and checkpoint 7 runs 4 word / 2 computation (its six mandatory algebra skills make an exact 5-problem split impossible). Checkpoint K stays as parent-assisted readiness checks and is exempt. Each checkpoint's computation problems mix a direct problem (`52 − 27 =`) with an **open-sentence** problem that hides a term (`25 = 15 + ______`, `15 × ______ = 60`, `300 − ______ = 120`), so computation tests reasoning, not just recall. The 60/40 ratio and the open-sentence requirement are both locked by validation tests.
 
 | Checkpoint | Skills tested | Problems | First one failed → |
 |------------|---------------|----------|--------------------|
@@ -184,9 +186,9 @@ Dependency direction is strictly one-way: `app.js → engine.js → data.js`. Th
 
 ## 9. Testing
 
-Run with `npm test` (Node 18+; uses Node's built-in test runner — zero dependencies). **21 tests, all passing.**
+Run with `npm test` (Node 18+; uses Node's built-in test runner — zero dependencies). **24 tests, all passing.**
 
-- **Data validation (6 tests):** structure, coverage, and answer-key sanity for all 42 problems and 9 outcomes.
+- **Data validation (9 tests):** structure, coverage, and answer-key sanity for all 40 problems and 9 outcomes, plus the 60/40 word/computation ratio, format tags, and open-sentence integrity.
 - **Engine (15 tests):** the age→seed table; comma/decimal/negative grading; pass-rule boundaries; explicit up-walk, down-walk, floor (Level K) and ceiling (beyond-7) scenarios; the seed-independence property across all 9 outcomes; and skill-breakdown partial credit, including the all-failed and all-passed edges.
 
 Manual verification performed on the built site: responsive 320–1440 with no overflow, keyboard-only completion, reduced-motion behavior, comma-formatted answers, refresh-resume mid-quiz, and three full scripted journeys (advanced student → Calculus note; selective misses → Level 4 with correct skill split; young beginner → Level K).

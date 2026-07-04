@@ -70,3 +70,56 @@ test("only checkpoint K is parent-assisted", () => {
     ["K"]
   );
 });
+
+// --- 60/40 word-vs-computation ratio (checkpoint K exempt) ---
+
+const scored = () => CHECKPOINTS.filter((c) => c.id !== "K");
+
+test("checkpoints 1-7 tag every problem word|computation; K tags none", () => {
+  for (const cp of CHECKPOINTS) {
+    for (const p of cp.problems) {
+      if (cp.id === "K") {
+        assert.equal(p.format, undefined, `K problem ${p.id} should have no format`);
+      } else {
+        assert.ok(
+          p.format === "word" || p.format === "computation",
+          `problem ${p.id} has bad format ${p.format}`
+        );
+      }
+    }
+  }
+});
+
+test("each scored checkpoint hits its 60/40 target", () => {
+  for (const cp of scored()) {
+    const word = cp.problems.filter((p) => p.format === "word").length;
+    const comp = cp.problems.filter((p) => p.format === "computation").length;
+    const expected = cp.id === "7" ? { word: 4, comp: 2 } : { word: 3, comp: 2 };
+    assert.deepEqual(
+      { word, comp },
+      expected,
+      `checkpoint ${cp.id} mix is ${word} word / ${comp} computation`
+    );
+  }
+});
+
+test("checkpoints 1-6 each include an open-sentence (blank) computation problem", () => {
+  const blank = /_{2,}/;
+  for (const cp of scored()) {
+    if (cp.id === "7") continue; // CP7 uses variable-letter algebra instead of blanks
+    const openSentences = cp.problems.filter(
+      (p) => p.format === "computation" && blank.test(p.prompt)
+    );
+    assert.ok(
+      openSentences.length >= 1,
+      `checkpoint ${cp.id} has no open-sentence computation problem`
+    );
+    for (const p of openSentences) {
+      assert.equal(p.type, "numeric", `open sentence ${p.id} must be numeric`);
+      assert.ok(
+        Number.isFinite(Number(String(p.answer).replace(/,/g, ""))),
+        `open sentence ${p.id} answer not numeric`
+      );
+    }
+  }
+});
